@@ -24,9 +24,8 @@ function CrashGameUI({ pick }) {
   const isRunning = round.status === ROUND_STATUSES.RUNNING;
   const isBusy = round.status === ROUND_STATUSES.COUNTDOWN || isRunning;
   const isEnded = round.status === ROUND_STATUSES.ENDED;
-  const isShowingPlayed = isBusy || (isEnded && Boolean(playedPick) && Boolean(pick));
+  const isShowingPlayed = isBusy || (isEnded && Boolean(pick) && playedPick?.selection === pick.selection);
   const shownPick = isShowingPlayed ? playedPick : pick;
-  const nextPick = isShowingPlayed && pick && pick.selection.id !== playedPick?.selection.id ? pick : null;
   const pickOdds = pick?.outcome.odds ?? 0;
   const effectiveAutoCashOut = autoCashOut !== null && autoCashOut < pickOdds ? autoCashOut : null;
 
@@ -55,7 +54,18 @@ function CrashGameUI({ pick }) {
   const { selection, outcome } = shownPick;
   const roundForView = isShowingPlayed
     ? round
-    : { ...round, status: ROUND_STATUSES.IDLE, phase: null, score: { home: 0, away: 0 }, maxMultiplier: outcome.odds };
+    : {
+        ...round,
+        status: ROUND_STATUSES.IDLE,
+        phase: null,
+        score: { home: 0, away: 0 },
+        multiplier: 1,
+        chance: null,
+        suspense: null,
+        lastEvent: null,
+        cashedOut: null,
+        maxMultiplier: outcome.odds,
+      };
   const livePayout = getPayout(round.stake, round.multiplier);
   const isWon = round.phase === ROUND_PHASES.WON;
   const winAmount = round.cashedOut?.payout ?? (isWon ? livePayout : 0);
@@ -79,13 +89,6 @@ function CrashGameUI({ pick }) {
         {selection.marketName} · {selection.outcomeName}
         <span className="sb-CrashGame-pickOdds">{outcome.odds.toFixed(2)}</span>
       </div>
-
-      {nextPick && (
-        <div className="sb-CrashGame-next" data-test-id="crash-next">
-          Next: {nextPick.selection.outcomeName}
-          <span className="sb-CrashGame-pickOdds">{nextPick.outcome.odds.toFixed(2)}</span>
-        </div>
-      )}
 
       <CrashStage
         historyRef={historyRef}

@@ -216,8 +216,14 @@ function CrashStageUI({ round, historyRef, themeId, teamNames, result = null }) 
       const isRoundIdle = current.status === ROUND_STATUSES.IDLE || current.status === ROUND_STATUSES.COUNTDOWN;
       const peak = history.reduce((max, point) => Math.max(max, point.multiplier), 1);
 
+      if (current.status === ROUND_STATUSES.IDLE && seen.status && seen.status !== ROUND_STATUSES.IDLE) {
+        particles = [];
+        seen = {};
+      }
+
       if (current.status === ROUND_STATUSES.COUNTDOWN && seen.status !== ROUND_STATUSES.COUNTDOWN) {
         scale = getTargetScale(1, current.maxMultiplier);
+        particles = [];
         seen = {};
       }
 

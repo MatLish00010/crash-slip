@@ -23,7 +23,7 @@ https://matlish00010.github.io/crash-slip/.
 | `slip-remove` | clear the slip |
 | `crash-empty` | empty state (no outcome in the slip) |
 | `crash-place` / `crash-cash-out` | main button before / during a round |
-| `crash-stage`, `crash-suspense`, `crash-event-banner`, `crash-result`, `crash-next` | stage parts |
+| `crash-stage`, `crash-suspense`, `crash-event-banner`, `crash-result` | stage parts |
 
 Matches: `m1` even (2.10 / 3.40 / 3.60), `m2` home favourite, `m3` away favourite with home +1.5, `m4` even and low
 scoring with −0.5. Markets: `1` 1x2, `10` double chance, `16` handicap, `18` total.
@@ -55,8 +55,8 @@ for (let i = 0; i < 400; i++) {
 4. Manual cash out mid-round: the marker and label on the chart, the dashed ghost line afterwards, `+payout` in the
    header at the end.
 5. Auto cash out: chips at or above the outcome odds are disabled and never stay selected.
-6. Change the slip during a round: the round keeps its outcome; after the end the result stays and `Next:` shows
-   the new outcome; Place starts the new one with a 0 : 0 score.
+6. Change the slip during a round: the round keeps its outcome. After a round ends, click any odd: the old result
+   is gone and the new outcome shows 0 : 0, an empty chart and its own odds line.
 7. Mobile width (375 px): the slip goes above the feed, nothing wraps or overlaps.
 
 ## What to look for

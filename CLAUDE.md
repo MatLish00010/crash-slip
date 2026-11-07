@@ -61,8 +61,8 @@ The engine reads sportsbook-shaped selections, so the code can move back to cons
 These were agreed with the product owner; do not undo them without asking.
 
 - **The outcome comes from the bet slip only.** No outcome picker inside the crash, the same as Simulations. A
-  running round keeps its outcome even if the slip changes; the finished round stays on screen until the next
-  Place, and the new slip outcome shows as a "Next:" line.
+  running round keeps its outcome even if the slip changes. A finished round stays on screen only until the player
+  clicks an odd: any new pick (even the same outcome again) clears the old result and shows a fresh 0 : 0 round.
 - **Minimal UI.** Keep: teams with score, the outcome line with odds, the stage, stake chips, auto cash out chips,
   Place / Cash out. Removed on purpose: demo balance, outcome chips, theme card (title, rule, max odds),
   15'/30'/… checkpoint row, meter ("Lead +1"), round history. The canvas still marks 15'…FT on its axis.

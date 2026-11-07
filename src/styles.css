@@ -337,18 +337,6 @@ button {
   }
 }
 
-.sb-CrashGame-next {
-  align-items: center;
-  background: var(--bg-extra);
-  border-radius: 8px;
-  color: var(--color-secondary);
-  display: flex;
-  font-size: 12px;
-  gap: 6px;
-  justify-content: center;
-  padding: 5px 10px;
-}
-
 .cs-Header-logo {
   white-space: nowrap;
 }
