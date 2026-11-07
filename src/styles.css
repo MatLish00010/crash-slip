@@ -1,0 +1,360 @@
+:root {
+  --bg-zero: #0a0c10;
+  --bg-base: #12151b;
+  --bg-secondary: #1a1e26;
+  --bg-extra: #242a35;
+  --bg-overlay: rgba(0, 0, 0, 0.45);
+  --border-base: #2c3340;
+  --color-base: #f1f3f7;
+  --color-secondary: #a2abba;
+  --color-hint: #6c7584;
+  --color-disabled: #424955;
+  --primary-base: #00c46a;
+  --primary-contrast: #04160d;
+  --promo-base: #ffb020;
+  --promo-contrast: #1c1300;
+  --success-base: #22d27d;
+  --success-contrast: #03170c;
+  --error-base: #ff3d5e;
+  --error-contrast: #ffffff;
+  --warn-base: #ffc53d;
+  --warn-contrast: #1c1300;
+  --accent-base: #4f8dff;
+
+  color-scheme: dark;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--color-base);
+  margin: 0;
+}
+
+button {
+  font: inherit;
+}
+
+.cs-App {
+  min-height: 100vh;
+}
+
+.cs-Header {
+  align-items: baseline;
+  background: var(--bg-zero);
+  border-bottom: 1px solid var(--border-base);
+  display: flex;
+  gap: 16px;
+  padding: 14px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.cs-Header-logo {
+  color: var(--promo-base);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.cs-Header-hint {
+  color: var(--color-secondary);
+  font-size: 13px;
+}
+
+.cs-Layout {
+  align-items: start;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 16px;
+}
+
+.cs-Feed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cs-Match {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-base);
+  border-radius: 14px;
+  padding: 12px 14px 14px;
+}
+
+.cs-Match-header {
+  color: var(--color-hint);
+  display: flex;
+  font-size: 12px;
+  justify-content: space-between;
+}
+
+.cs-Match-teams {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 15px;
+  font-weight: 800;
+  gap: 10px;
+  margin: 10px 0 12px;
+}
+
+.cs-Match-team {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.cs-Match-vs {
+  color: var(--color-hint);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cs-Match-markets {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.cs-Market {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cs-Market-name {
+  color: var(--color-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cs-Market-outcomes {
+  display: flex;
+  gap: 6px;
+}
+
+.cs-Odd {
+  align-items: center;
+  background: var(--bg-extra);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--color-base);
+  cursor: pointer;
+  display: flex;
+  flex: 1 1 0;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 8px 10px;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.cs-Odd:hover {
+  border-color: var(--primary-base);
+  transform: translateY(-1px);
+}
+
+.cs-Odd.isSelected {
+  background: var(--primary-base);
+  color: var(--primary-contrast);
+}
+
+.cs-Odd-label {
+  font-size: 12px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cs-Odd-value {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+}
+
+.cs-Odd:not(.isSelected) .cs-Odd-value {
+  color: var(--promo-base);
+}
+
+.cs-Slip {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-base);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  position: sticky;
+  top: 66px;
+}
+
+.cs-Slip-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cs-Slip-title {
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.cs-Slip-mode {
+  background: var(--promo-base);
+  border-radius: 6px;
+  color: var(--promo-contrast);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
+}
+
+.cs-Slip-selection {
+  align-items: center;
+  background: var(--bg-extra);
+  border-radius: 10px;
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+}
+
+.cs-Slip-selectionText {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cs-Slip-selectionOutcome {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cs-Slip-selectionMeta {
+  color: var(--color-hint);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cs-Slip-remove {
+  background: transparent;
+  border: 0;
+  color: var(--color-hint);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.cs-Slip-remove:hover {
+  color: var(--color-base);
+}
+
+.sb-TeamBadge {
+  align-items: center;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12);
+  color: #fff;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-weight: 900;
+  justify-content: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.sb-CrashEmpty {
+  align-items: center;
+  color: var(--color-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 40px 16px;
+  text-align: center;
+}
+
+.sb-CrashEmpty-icon {
+  font-size: 36px;
+}
+
+.sb-CrashEmpty-title {
+  color: var(--color-base);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.sb-CrashEmpty-text {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.sb-Button {
+  align-items: center;
+  border: 0;
+  display: flex;
+  justify-content: center;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.sb-Button:disabled {
+  cursor: default;
+}
+
+.sb-CrashGame-place {
+  background: var(--primary-base);
+  color: var(--primary-contrast);
+}
+
+.sb-CrashGame-place:disabled {
+  opacity: 0.5;
+}
+
+.sb-CrashGame-cashOut {
+  background: var(--btn-bg);
+  color: var(--btn-color);
+}
+
+@media (max-width: 860px) {
+  .cs-Layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cs-Slip {
+    order: -1;
+    position: static;
+  }
+}
+
+.sb-CrashGame-next {
+  align-items: center;
+  background: var(--bg-extra);
+  border-radius: 8px;
+  color: var(--color-secondary);
+  display: flex;
+  font-size: 12px;
+  gap: 6px;
+  justify-content: center;
+  padding: 5px 10px;
+}
+
+.cs-Header-logo {
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .cs-Header-hint {
+    display: none;
+  }
+}

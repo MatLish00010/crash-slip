@@ -1,0 +1,552 @@
+$radius-s: 6px;
+$radius-m: 10px;
+$radius-l: 14px;
+
+.sb-CrashGame {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-block: 4px 16px;
+}
+
+.sb-CrashGame-pick {
+  align-items: center;
+  color: var(--color-secondary);
+  display: flex;
+  font-size: 12px;
+  gap: 6px;
+  justify-content: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sb-CrashGame-pickOdds {
+  color: var(--promo-base);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+.sb-CrashGame-match {
+  align-items: stretch;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr auto 1fr;
+}
+
+.sb-CrashGame-team {
+  align-items: center;
+  background: var(--bg-secondary);
+  border: 2px solid transparent;
+  border-radius: $radius-l;
+  color: var(--color-base);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding-block: 8px 6px;
+  padding-inline: 6px;
+
+  &:first-child {
+    order: 1;
+  }
+
+  &:nth-child(2) {
+    order: 3;
+  }
+
+  &.isActive {
+    border-color: var(--primary-base);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--primary-base) 35%, transparent);
+  }
+}
+
+.sb-CrashGame-teamName {
+  font-size: 12px;
+  font-weight: 700;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sb-CrashGame-score {
+  align-self: center;
+  color: var(--color-base);
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  order: 2;
+
+  &.isCrashed {
+    color: var(--error-base);
+  }
+}
+
+.sb-CrashStage {
+  background: var(--bg-zero);
+  border: 1px solid var(--border-base);
+  border-radius: $radius-l;
+  overflow: hidden;
+  position: relative;
+  transition: border-color 0.3s, box-shadow 0.3s;
+
+  &.isHotMinutes {
+    animation: sb-crash-hot 0.8s ease-in-out infinite;
+  }
+
+  &.isThreat {
+    animation: sb-crash-threat 0.45s ease-in-out infinite;
+    border-color: var(--error-base);
+  }
+
+  &.isChance {
+    animation: sb-crash-chance 0.45s ease-in-out infinite;
+    border-color: var(--success-base);
+  }
+
+  &.isCrashed {
+    animation: none;
+    border-color: var(--error-base);
+    box-shadow: 0 0 24px color-mix(in srgb, var(--error-base) 40%, transparent);
+  }
+
+  &.isWon {
+    animation: none;
+    border-color: var(--success-base);
+    box-shadow: 0 0 28px color-mix(in srgb, var(--success-base) 45%, transparent);
+  }
+}
+
+.sb-CrashStage-hud {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-block: 8px 4px;
+  padding-inline: 10px;
+}
+
+.sb-CrashStage-hudRow {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  min-height: 20px;
+}
+
+.sb-CrashStage-chance,
+.sb-CrashStage-clock {
+  align-items: center;
+  color: var(--color-secondary);
+  display: flex;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.sb-CrashStage-clock {
+  color: var(--color-base);
+  font-size: 13px;
+}
+
+.sb-CrashStage-liveDot {
+  animation: sb-crash-blink 1s infinite;
+  background: var(--error-base);
+  border-radius: 50%;
+  height: 7px;
+  width: 7px;
+}
+
+.sb-CrashStage-value {
+  align-items: center;
+  display: flex;
+  height: 48px;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.sb-CrashStage-ready {
+  color: var(--color-disabled);
+  font-size: 40px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+}
+
+.sb-CrashStage-multiplier {
+  animation: sb-crash-bump 0.35s ease-out;
+  color: var(--color-base);
+  font-size: 40px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+
+  &.isCold {
+    color: var(--color-secondary);
+  }
+
+  &.isHot {
+    color: var(--promo-base);
+  }
+
+  &.isFire {
+    animation: sb-crash-bump 0.35s ease-out, sb-crash-fire 0.6s ease-in-out infinite alternate;
+    color: var(--warn-base);
+  }
+
+  &.isCrashed {
+    animation: none;
+    color: var(--error-base);
+    text-decoration: line-through;
+  }
+}
+
+.sb-CrashStage-countdown {
+  animation: sb-crash-countdown 0.6s ease-out forwards;
+  color: var(--primary-base);
+  font-size: 44px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.sb-CrashStage-eventSlot {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  height: 40px;
+  justify-content: center;
+}
+
+.sb-CrashStage-suspense {
+  align-items: center;
+  animation: sb-crash-pop 0.3s ease-out;
+  border-radius: $radius-m;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-block: 5px;
+  padding-inline: 12px;
+  width: 100%;
+
+  &.isThreat {
+    background: var(--error-base);
+    color: var(--error-contrast);
+  }
+
+  &.isChance {
+    background: var(--success-base);
+    color: var(--success-contrast);
+  }
+}
+
+.sb-CrashStage-suspenseTitle {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sb-CrashStage-suspenseBar {
+  background: color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: $radius-s;
+  height: 4px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.sb-CrashStage-suspenseFill {
+  background: currentColor;
+  display: block;
+  height: 100%;
+  transform-origin: left;
+}
+
+.sb-CrashStage-banner {
+  animation: sb-crash-banner 1.7s ease-out forwards;
+  border-radius: $radius-m;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  max-width: 100%;
+  overflow: hidden;
+  padding-block: 6px;
+  padding-inline: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.isGood {
+    background: var(--success-base);
+    color: var(--success-contrast);
+  }
+
+  &.isBad {
+    background: var(--error-base);
+    color: var(--error-contrast);
+  }
+
+  &.isFinal {
+    animation: sb-crash-banner-stay 0.5s ease-out forwards;
+  }
+}
+
+.sb-CrashStage-result {
+  animation: sb-crash-pop 0.45s ease-out;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+
+  &.isWin {
+    color: var(--success-base);
+  }
+
+  &.isLoss {
+    color: var(--error-base);
+  }
+}
+
+.sb-CrashStage-plot {
+  border-top: 1px solid var(--border-base);
+}
+
+.sb-CrashStage-canvas {
+  display: block;
+}
+
+.sb-Button.sb-CrashGame-cashOut {
+  --btn-bg: var(--success-base);
+  --btn-bg-hover: var(--success-base);
+  --btn-color: var(--success-contrast);
+
+  animation: sb-crash-cash-pulse 0.9s ease-in-out infinite;
+  height: 56px;
+  width: 100%;
+
+  &.isSave {
+    --btn-bg: var(--warn-base);
+    --btn-bg-hover: var(--warn-base);
+    --btn-color: var(--warn-contrast);
+  }
+
+  &.isUrgent {
+    animation: sb-crash-cash-pulse 0.35s ease-in-out infinite;
+  }
+
+  &.isCashed {
+    animation: none;
+    opacity: 0.9;
+  }
+}
+
+.sb-CrashGame-cashOutLabel {
+  align-items: center;
+  display: flex;
+  font-size: 16px;
+  font-weight: 900;
+  gap: 10px;
+  text-transform: uppercase;
+}
+
+.sb-CrashGame-cashOutAmount {
+  background: color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: $radius-s;
+  font-variant-numeric: tabular-nums;
+  padding-block: 2px;
+  padding-inline: 8px;
+}
+
+.sb-CrashGame-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sb-CrashGame-controlRow {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.sb-CrashGame-controlLabel {
+  color: var(--color-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.sb-CrashGame-chips {
+  display: flex;
+  gap: 4px;
+}
+
+.sb-CrashGame-chip {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-base);
+  border-radius: $radius-s;
+  color: var(--color-base);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 36px;
+  padding-block: 5px;
+  padding-inline: 5px;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover:not(:disabled) {
+    border-color: var(--primary-base);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.35;
+  }
+
+  &.isActive {
+    background: var(--primary-base);
+    border-color: var(--primary-base);
+    color: var(--primary-contrast);
+  }
+}
+
+.sb-Button.sb-CrashGame-place {
+  font-weight: 900;
+  height: 48px;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+@keyframes sb-crash-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes sb-crash-float {
+  50% {
+    transform: translateY(-4px) rotate(-6deg);
+  }
+}
+
+@keyframes sb-crash-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes sb-crash-bump {
+  0% {
+    transform: scale(1.25);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes sb-crash-fire {
+  to {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes sb-crash-countdown {
+  0% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+}
+
+@keyframes sb-crash-banner {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.6);
+  }
+
+  15% {
+    opacity: 1;
+    transform: translateY(0) scale(1.08);
+  }
+
+  25% {
+    transform: scale(1);
+  }
+
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes sb-crash-banner-stay {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes sb-crash-leg-next {
+  50% {
+    box-shadow: 0 0 10px color-mix(in srgb, var(--primary-base) 60%, transparent);
+  }
+}
+
+@keyframes sb-crash-hot {
+  50% {
+    border-color: var(--warn-base);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--warn-base) 45%, transparent);
+  }
+}
+
+@keyframes sb-crash-threat {
+  50% {
+    box-shadow: 0 0 30px color-mix(in srgb, var(--error-base) 65%, transparent);
+  }
+}
+
+@keyframes sb-crash-chance {
+  50% {
+    box-shadow: 0 0 30px color-mix(in srgb, var(--success-base) 65%, transparent);
+  }
+}
+
+@keyframes sb-crash-cash-pulse {
+  50% {
+    box-shadow: 0 0 22px color-mix(in srgb, currentColor 50%, transparent);
+    transform: scale(1.02);
+  }
+}
