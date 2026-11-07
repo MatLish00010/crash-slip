@@ -354,7 +354,7 @@ export function drawFrame(context, { geometry, colors, view, history, particles,
   drawGlyph(context, {
     x: geometry.toX(head.minute),
     y: geometry.toY(head.multiplier),
-    rotation: isSuspense && !isCrashed ? Math.sin(time * 40) * 0.25 : 0,
+    rotation: isCrashed ? 0 : head.minute * 0.6 + (isSuspense ? Math.sin(time * 40) * 0.25 : 0),
     glyph: isCrashed ? '💥' : theme.glyph,
     size: isSuspense ? 28 : 22,
   });

@@ -2,13 +2,13 @@ import { THEME_IDS } from './crash-outcomes';
 
 export const THEMES = {
   [THEME_IDS.PUSH]: { glyph: '⚽', lineColor: 'primary', gradientColor: 'promo' },
-  [THEME_IDS.BALANCE]: { glyph: '⚖️', lineColor: 'accent', gradientColor: 'primary' },
-  [THEME_IDS.HOLD]: { glyph: '🛡️', lineColor: 'primary', gradientColor: 'success' },
-  [THEME_IDS.NO_DRAW]: { glyph: '⚡', lineColor: 'warn', gradientColor: 'promo' },
-  [THEME_IDS.GAP]: { glyph: '🏃', lineColor: 'promo', gradientColor: 'warn' },
-  [THEME_IDS.CUSHION]: { glyph: '🧱', lineColor: 'primary', gradientColor: 'accent' },
-  [THEME_IDS.ROCKET]: { glyph: '🚀', lineColor: 'warn', gradientColor: 'error' },
-  [THEME_IDS.VAULT]: { glyph: '🔒', lineColor: 'accent', gradientColor: 'success' },
+  [THEME_IDS.BALANCE]: { glyph: '⚽', lineColor: 'accent', gradientColor: 'primary' },
+  [THEME_IDS.HOLD]: { glyph: '⚽', lineColor: 'primary', gradientColor: 'success' },
+  [THEME_IDS.NO_DRAW]: { glyph: '⚽', lineColor: 'warn', gradientColor: 'promo' },
+  [THEME_IDS.GAP]: { glyph: '⚽', lineColor: 'promo', gradientColor: 'warn' },
+  [THEME_IDS.CUSHION]: { glyph: '⚽', lineColor: 'primary', gradientColor: 'accent' },
+  [THEME_IDS.ROCKET]: { glyph: '⚽', lineColor: 'warn', gradientColor: 'error' },
+  [THEME_IDS.VAULT]: { glyph: '⚽', lineColor: 'accent', gradientColor: 'success' },
 };
 
 const CRASH_TEXTS = {
