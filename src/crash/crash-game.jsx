@@ -80,7 +80,7 @@ function CrashGameUI({ pick }) {
             <span className="sb-CrashGame-teamName">{teamNames[side]}</span>
           </div>
         ))}
-        <div className={clsx('sb-CrashGame-score', roundForView.phase === ROUND_PHASES.CRASHED && 'isCrashed')}>
+        <div className={clsx('sb-CrashGame-score', roundForView.phase === ROUND_PHASES.LOST && 'isCrashed')}>
           {roundForView.score.home} : {roundForView.score.away}
         </div>
       </div>

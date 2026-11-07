@@ -11,17 +11,6 @@ export const THEMES = {
   [THEME_IDS.VAULT]: { glyph: '⚽', lineColor: 'accent', gradientColor: 'success' },
 };
 
-const CRASH_TEXTS = {
-  [THEME_IDS.PUSH]: team => `${team} AHEAD`,
-  [THEME_IDS.BALANCE]: () => 'BALANCE BROKEN',
-  [THEME_IDS.HOLD]: () => 'LINE BROKEN',
-  [THEME_IDS.NO_DRAW]: () => 'DRAW',
-  [THEME_IDS.GAP]: team => `${team} AHEAD`,
-  [THEME_IDS.CUSHION]: () => 'CUSHION GONE',
-  [THEME_IDS.ROCKET]: () => 'OUT OF FUEL',
-  [THEME_IDS.VAULT]: () => 'VAULT CRACKED',
-};
-
 const SUSPENSE_TEXTS = {
   penalty: team => `PENALTY · ${team}`,
   var: team => `VAR CHECK · ${team}`,
@@ -33,10 +22,6 @@ const MISS_TEXTS = {
   var: 'VAR: NO GOAL',
   attack: 'MISSED!',
 };
-
-export const getCrashText = (themeId, team) => CRASH_TEXTS[themeId](team);
-
-export const getWinText = themeId => (themeId === THEME_IDS.ROCKET ? 'ORBIT!' : 'FULL TIME · WIN');
 
 export const getSuspenseText = (type, team) => SUSPENSE_TEXTS[type](team);
 

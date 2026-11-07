@@ -83,38 +83,30 @@ const getLead = (outcome, home, away) => (outcome.side === SIDES.AWAY ? away - h
 
 const RULES = {
   [OUTCOME_KINDS.WIN]: {
-    isCrash: (outcome, home, away) => getLead(outcome, home, away) < 0,
     isWinAtFullTime: (outcome, home, away) => getLead(outcome, home, away) > 0,
     calibration: CALIBRATION.STRENGTH,
   },
   [OUTCOME_KINDS.DRAW]: {
-    isCrash: (outcome, home, away) => Math.abs(home - away) >= 2,
     isWinAtFullTime: (outcome, home, away) => home === away,
     calibration: CALIBRATION.GOALS,
   },
   [OUTCOME_KINDS.DOUBLE_SIDE]: {
-    isCrash: (outcome, home, away) => getLead(outcome, home, away) < 0,
     isWinAtFullTime: (outcome, home, away) => getLead(outcome, home, away) >= 0,
     calibration: CALIBRATION.STRENGTH,
   },
   [OUTCOME_KINDS.NO_DRAW]: {
-    isCrash: () => false,
     isWinAtFullTime: (outcome, home, away) => home !== away,
     calibration: CALIBRATION.GOALS,
   },
   [OUTCOME_KINDS.HANDICAP]: {
-    isCrash: (outcome, home, away) => getLead(outcome, home, away) < Math.min(0, -outcome.line),
     isWinAtFullTime: (outcome, home, away) => getLead(outcome, home, away) + outcome.line > 0,
     calibration: CALIBRATION.STRENGTH,
   },
   [OUTCOME_KINDS.OVER]: {
-    isCrash: () => false,
-    isInstantWin: (outcome, home, away) => home + away > outcome.line,
     isWinAtFullTime: (outcome, home, away) => home + away > outcome.line,
     calibration: CALIBRATION.GOALS,
   },
   [OUTCOME_KINDS.UNDER]: {
-    isCrash: (outcome, home, away) => home + away > outcome.line,
     isWinAtFullTime: (outcome, home, away) => home + away < outcome.line,
     calibration: CALIBRATION.GOALS,
   },

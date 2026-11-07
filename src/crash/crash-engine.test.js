@@ -1,5 +1,6 @@
 import {
   calibrateMatch,
+  HOUSE_EDGE,
   generateMatchEvents,
   getMatchClockMinute,
   getPayout,
@@ -80,9 +81,9 @@ describe('parseSlipOutcome', () => {
 
 describe('calibrateMatch', () => {
   test.each(DEMO_OUTCOMES.map(outcome => [outcome.id, outcome]))(
-    'matches the chance implied by the odds for %s',
+    'sets the start chance below the odds by the house edge for %s',
     (id, outcome) => {
-      expect(calibrateMatch(outcome).startChance).toBeCloseTo(1 / outcome.odds, 2);
+      expect(calibrateMatch(outcome).startChance).toBeCloseTo((1 - HOUSE_EDGE) / outcome.odds, 2);
     }
   );
 
@@ -96,49 +97,63 @@ describe('calibrateMatch', () => {
 });
 
 describe('getRoundStateAt', () => {
-  test('crashes the win theme when the opponent takes the lead', () => {
+  test('starts every round just below the stake', () => {
+    const round = createScriptedRound(findDemoOutcome('demo-home'), []);
+
+    expect(getRoundStateAt(round, 0).multiplier).toBeCloseTo(1 - HOUSE_EDGE, 1);
+  });
+
+  test('keeps playing when the opponent scores and drops the multiplier', () => {
     const round = createScriptedRound(findDemoOutcome('demo-home'), [
       { minute: 10, team: SIDES.AWAY, isGoal: true, suspense: null },
     ]);
+    const before = getRoundStateAt(round, 9 * MS_PER_MINUTE);
+    const after = getRoundStateAt(round, 11 * MS_PER_MINUTE);
 
-    expect(getRoundStateAt(round, 5 * MS_PER_MINUTE).phase).toBe(ROUND_PHASES.RUNNING);
-    expect(getRoundStateAt(round, 11 * MS_PER_MINUTE)).toMatchObject({ phase: ROUND_PHASES.CRASHED, multiplier: 0 });
+    expect(after.phase).toBe(ROUND_PHASES.RUNNING);
+    expect(after.multiplier).toBeLessThan(before.multiplier);
+    expect(after.multiplier).toBeGreaterThan(0);
   });
 
-  test('keeps the hold theme alive after an equaliser and drops the multiplier', () => {
-    const round = createScriptedRound(findDemoOutcome('demo-1x'), [
-      { minute: 10, team: SIDES.HOME, isGoal: true, suspense: null },
-      { minute: 20, team: SIDES.AWAY, isGoal: true, suspense: null },
+  test('moves the multiplier with the score: behind, level, ahead', () => {
+    const round = createScriptedRound(findDemoOutcome('demo-home'), [
+      { minute: 10, team: SIDES.AWAY, isGoal: true, suspense: null },
+      { minute: 20, team: SIDES.HOME, isGoal: true, suspense: null },
+      { minute: 30, team: SIDES.HOME, isGoal: true, suspense: null },
     ]);
-    const leading = getRoundStateAt(round, 15 * MS_PER_MINUTE);
-    const level = getRoundStateAt(round, 21 * MS_PER_MINUTE);
+    const behind = getRoundStateAt(round, 15 * MS_PER_MINUTE).multiplier;
+    const level = getRoundStateAt(round, 25 * MS_PER_MINUTE).multiplier;
+    const ahead = getRoundStateAt(round, 35 * MS_PER_MINUTE).multiplier;
 
-    expect(level.phase).toBe(ROUND_PHASES.RUNNING);
-    expect(level.multiplier).toBeLessThan(leading.multiplier);
+    expect(behind).toBeLessThan(level);
+    expect(level).toBeLessThan(1);
+    expect(ahead).toBeGreaterThan(1);
   });
 
-  test('wins the rocket theme on the goal that passes the line', () => {
-    const round = createScriptedRound(findDemoOutcome('demo-over'), [
+  test('locks the rocket at the full odds after the goal over the line and plays to full time', () => {
+    const outcome = findDemoOutcome('demo-over');
+    const round = createScriptedRound(outcome, [
       { minute: 5, team: SIDES.HOME, isGoal: true, suspense: null },
       { minute: 6, team: SIDES.AWAY, isGoal: true, suspense: null },
       { minute: 7, team: SIDES.HOME, isGoal: true, suspense: null },
     ]);
 
     expect(getRoundStateAt(round, 8 * MS_PER_MINUTE)).toMatchObject({
-      phase: ROUND_PHASES.WON,
-      minute: 7,
-      multiplier: Math.floor((1 / round.startChance) * 100) / 100,
+      phase: ROUND_PHASES.RUNNING,
+      multiplier: outcome.odds,
     });
+    expect(getRoundStateAt(round, FINAL_MS)).toMatchObject({ phase: ROUND_PHASES.WON, multiplier: outcome.odds });
   });
 
-  test('crashes the vault theme on the goal that breaks the line', () => {
+  test('drops the vault to zero after the goal over the line and loses at full time', () => {
     const round = createScriptedRound(findDemoOutcome('demo-under'), [
       { minute: 5, team: SIDES.HOME, isGoal: true, suspense: null },
       { minute: 6, team: SIDES.HOME, isGoal: true, suspense: null },
       { minute: 7, team: SIDES.AWAY, isGoal: true, suspense: null },
     ]);
 
-    expect(getRoundStateAt(round, 8 * MS_PER_MINUTE).phase).toBe(ROUND_PHASES.CRASHED);
+    expect(getRoundStateAt(round, 8 * MS_PER_MINUTE)).toMatchObject({ phase: ROUND_PHASES.RUNNING, multiplier: 0 });
+    expect(getRoundStateAt(round, FINAL_MS).phase).toBe(ROUND_PHASES.LOST);
   });
 
   test('freezes the clock during a penalty and prices the chance of a goal', () => {
@@ -157,34 +172,41 @@ describe('getRoundStateAt', () => {
     const outcome = findDemoOutcome('demo-draw');
     const round = createScriptedRound(outcome, []);
 
-    expect(getRoundStateAt(round, FINAL_MS)).toMatchObject({ phase: ROUND_PHASES.WON, minute: 90 });
-    expect(getRoundStateAt(round, FINAL_MS).multiplier).toBeCloseTo(outcome.odds, 1);
+    expect(getRoundStateAt(round, FINAL_MS)).toMatchObject({ phase: ROUND_PHASES.WON, minute: 90, multiplier: 3.4 });
   });
+});
 
-  test.each(['demo-home', 'demo-x2', 'demo-hcp-minus', 'demo-over', 'demo-under'])(
-    'returns about the stake on average for %s whatever minute the player cashes out',
-    id => {
-      const calibration = calibrateMatch(findDemoOutcome(id));
-      const rng = createSeededRng(11);
-      const rounds = 4000;
-      let returned = 0;
-
-      for (let index = 0; index < rounds; index += 1) {
-        const round = {
-          ...calibration,
-          outcome: findDemoOutcome(id),
-          events: generateMatchEvents(calibration.rates, rng),
-        };
-        const cashOut = getRoundStateAt(round, 40 * MS_PER_MINUTE);
-        const final = getRoundStateAt(round, FINAL_MS);
-
-        returned += cashOut.phase === ROUND_PHASES.RUNNING && index % 2 === 0 ? cashOut.multiplier : final.multiplier;
-      }
-
-      expect(returned / rounds).toBeGreaterThan(0.9);
-      expect(returned / rounds).toBeLessThan(1.1);
+const STRATEGIES = {
+  'holds to full time': () => null,
+  'cashes out at 40 minutes': () => 40,
+  'cashes out at the first multiplier above 1.1': round => {
+    for (let minute = 1; minute < 90; minute += 1) {
+      if (getRoundStateAt(round, minute * MS_PER_MINUTE).multiplier > 1.1) return minute;
     }
-  );
+
+    return null;
+  },
+};
+
+describe.each(['demo-home', 'demo-x2', 'demo-hcp-minus', 'demo-over', 'demo-under'])('house edge for %s', id => {
+  test.each(Object.keys(STRATEGIES))('a player who %s gets back less than the stake on average', strategyName => {
+    const outcome = findDemoOutcome(id);
+    const calibration = calibrateMatch(outcome);
+    const rng = createSeededRng(11);
+    const rounds = 3000;
+    let returned = 0;
+
+    for (let index = 0; index < rounds; index += 1) {
+      const round = { ...calibration, outcome, events: generateMatchEvents(calibration.rates, rng) };
+      const cashOutMinute = STRATEGIES[strategyName](round);
+      const state = getRoundStateAt(round, cashOutMinute === null ? FINAL_MS : cashOutMinute * MS_PER_MINUTE);
+
+      returned += state.multiplier;
+    }
+
+    expect(returned / rounds).toBeGreaterThan(0.88);
+    expect(returned / rounds).toBeLessThan(1);
+  });
 });
 
 test('formats the match clock and floors the payout', () => {

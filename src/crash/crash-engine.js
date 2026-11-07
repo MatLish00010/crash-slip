@@ -9,6 +9,8 @@ export const MS_PER_MINUTE = MATCH_DURATION_MS / MATCH_MINUTES;
 export const CHECKPOINTS = [15, 30, 45, 60, 75, 90];
 export const HOT_MINUTE = 80;
 
+export const HOUSE_EDGE = 0.05;
+
 const TABLE_STEP_MINUTES = 0.5;
 const TABLE_STEPS = MATCH_MINUTES / TABLE_STEP_MINUTES;
 const MAX_GOALS = 10;
@@ -18,7 +20,7 @@ const DEFAULT_TOTAL_GOALS = 2.7;
 const STRENGTH_RANGE = [0.04, 0.96];
 const GOALS_RANGE = [0.4, 7];
 const CALIBRATION_ITERATIONS = 32;
-const TARGET_CHANCE_RANGE = [0.03, 0.97];
+const TARGET_CHANCE_RANGE = [0.02, 0.95];
 
 export const SUSPENSE_TYPES = {
   PENALTY: 'penalty',
@@ -34,7 +36,6 @@ const SUSPENSE_SETTINGS = {
 
 export const ROUND_PHASES = {
   RUNNING: 'running',
-  CRASHED: 'crashed',
   WON: 'won',
   LOST: 'lost',
 };
@@ -45,14 +46,13 @@ export const getPayout = (stake, multiplier) => Math.floor(stake * multiplier * 
 
 export const getMatchClockMinute = minute => Math.min(MATCH_MINUTES, Math.floor(minute) + 1);
 
+export const getTargetChance = odds => {
+  const [minChance, maxChance] = TARGET_CHANCE_RANGE;
+
+  return Math.min(Math.max((1 - HOUSE_EDGE) / odds, minChance), maxChance);
+};
+
 const tableIndex = (step, home, away) => (step * SCORE_STATES + home) * SCORE_STATES + away;
-
-function getTerminalValue(outcome, rules, home, away) {
-  if (rules.isCrash(outcome, home, away)) return 0;
-  if (rules.isInstantWin?.(outcome, home, away)) return 1;
-
-  return null;
-}
 
 export function buildValueTable(outcome, { home: homeRate, away: awayRate }) {
   const rules = getRules(outcome);
@@ -62,28 +62,19 @@ export function buildValueTable(outcome, { home: homeRate, away: awayRate }) {
 
   for (let home = 0; home < SCORE_STATES; home += 1) {
     for (let away = 0; away < SCORE_STATES; away += 1) {
-      const terminal = getTerminalValue(outcome, rules, home, away);
-      const isWin = terminal ?? (rules.isWinAtFullTime(outcome, home, away) ? 1 : 0);
-
-      table[tableIndex(TABLE_STEPS, home, away)] = isWin;
+      table[tableIndex(TABLE_STEPS, home, away)] = rules.isWinAtFullTime(outcome, home, away) ? 1 : 0;
     }
   }
 
   for (let step = TABLE_STEPS - 1; step >= 0; step -= 1) {
     for (let home = 0; home < SCORE_STATES; home += 1) {
       for (let away = 0; away < SCORE_STATES; away += 1) {
-        const terminal = getTerminalValue(outcome, rules, home, away);
+        const stay = table[tableIndex(step + 1, home, away)];
+        const homeScores = table[tableIndex(step + 1, Math.min(home + 1, MAX_GOALS), away)];
+        const awayScores = table[tableIndex(step + 1, home, Math.min(away + 1, MAX_GOALS))];
 
-        if (terminal !== null) {
-          table[tableIndex(step, home, away)] = terminal;
-        } else {
-          const stay = table[tableIndex(step + 1, home, away)];
-          const homeScores = table[tableIndex(step + 1, Math.min(home + 1, MAX_GOALS), away)];
-          const awayScores = table[tableIndex(step + 1, home, Math.min(away + 1, MAX_GOALS))];
-
-          table[tableIndex(step, home, away)] =
-            homeChance * homeScores + awayChance * awayScores + (1 - homeChance - awayChance) * stay;
-        }
+        table[tableIndex(step, home, away)] =
+          homeChance * homeScores + awayChance * awayScores + (1 - homeChance - awayChance) * stay;
       }
     }
   }
@@ -117,8 +108,7 @@ function getRatesForParameter(outcome, parameter) {
 const getStartChance = (outcome, rates) => buildValueTable(outcome, rates)[tableIndex(0, 0, 0)];
 
 export function calibrateMatch(outcome) {
-  const [minChance, maxChance] = TARGET_CHANCE_RANGE;
-  const targetChance = Math.min(Math.max(1 / outcome.odds, minChance), maxChance);
+  const targetChance = getTargetChance(outcome.odds);
   let [low, high] = getRules(outcome).calibration === CALIBRATION.GOALS ? GOALS_RANGE : STRENGTH_RANGE;
   const isIncreasing =
     getStartChance(outcome, getRatesForParameter(outcome, high)) >
@@ -205,17 +195,18 @@ function describeState(round, { minute, score, phase, suspense = null, lastEvent
     suspense,
     lastEvent,
     chance,
-    multiplier: floorMultiplier(chance / round.startChance),
+    multiplier: floorMultiplier(round.outcome.odds * chance),
   };
 }
 
-function resolveAfterGoal(round, score) {
-  const rules = getRules(round.outcome);
-
-  if (rules.isCrash(round.outcome, score.home, score.away)) return ROUND_PHASES.CRASHED;
-  if (rules.isInstantWin?.(round.outcome, score.home, score.away)) return ROUND_PHASES.WON;
-
-  return ROUND_PHASES.RUNNING;
+function describeRunning(round, minute, score, lastEvent) {
+  return describeState(round, {
+    minute,
+    score,
+    phase: ROUND_PHASES.RUNNING,
+    lastEvent,
+    chance: getChance(round, minute, score),
+  });
 }
 
 export function getRoundStateAt(round, elapsedMs) {
@@ -228,24 +219,16 @@ export function getRoundStateAt(round, elapsedMs) {
     const eventStartMs = event.minute * MS_PER_MINUTE + pausedMs;
 
     if (elapsedMs < eventStartMs) {
-      const minute = (elapsedMs - pausedMs) / MS_PER_MINUTE;
-
-      return describeState(round, {
-        minute,
-        score,
-        phase: ROUND_PHASES.RUNNING,
-        lastEvent,
-        chance: getChance(round, minute, score),
-      });
+      return describeRunning(round, (elapsedMs - pausedMs) / MS_PER_MINUTE, score, lastEvent);
     }
+
+    const chanceIfGoal = getChance(round, event.minute, applyGoal(score, event.team));
+    const chanceIfNot = getChance(round, event.minute, score);
 
     if (event.suspense) {
       const { goalChance } = SUSPENSE_SETTINGS[event.suspense];
 
       if (elapsedMs < eventStartMs + SUSPENSE_MS) {
-        const chanceIfGoal = getChance(round, event.minute, applyGoal(score, event.team));
-        const chanceIfNot = getChance(round, event.minute, score);
-
         return describeState(round, {
           minute: event.minute,
           score,
@@ -266,49 +249,23 @@ export function getRoundStateAt(round, elapsedMs) {
     }
 
     if (event.isGoal) {
-      const chanceBefore = getChance(round, event.minute, score);
       score = applyGoal(score, event.team);
-
-      const phase = resolveAfterGoal(round, score);
-      const chance = phase === ROUND_PHASES.CRASHED ? 0 : getChance(round, event.minute, score);
-
-      lastEvent = { id: index, type: 'goal', team: event.team, minute: event.minute, isGood: chance >= chanceBefore };
-
-      if (phase !== ROUND_PHASES.RUNNING) {
-        return describeState(round, {
-          minute: event.minute,
-          score,
-          phase,
-          lastEvent,
-          chance: phase === ROUND_PHASES.WON ? 1 : 0,
-        });
-      }
+      lastEvent = { id: index, type: 'goal', team: event.team, minute: event.minute, isGood: chanceIfGoal >= chanceIfNot };
     } else {
-      const chanceIfGoal = getChance(round, event.minute, applyGoal(score, event.team));
-      const isThreatAverted = chanceIfGoal < getChance(round, event.minute, score);
-
       lastEvent = {
         id: index,
         type: event.suspense,
         team: event.team,
         minute: event.minute,
-        isGood: isThreatAverted,
+        isGood: chanceIfGoal < chanceIfNot,
         isMiss: true,
       };
     }
   }
 
-  const minute = Math.min((elapsedMs - pausedMs) / MS_PER_MINUTE, MATCH_MINUTES);
+  const minute = (elapsedMs - pausedMs) / MS_PER_MINUTE;
 
-  if (minute < MATCH_MINUTES) {
-    return describeState(round, {
-      minute,
-      score,
-      phase: ROUND_PHASES.RUNNING,
-      lastEvent,
-      chance: getChance(round, minute, score),
-    });
-  }
+  if (minute < MATCH_MINUTES) return describeRunning(round, minute, score, lastEvent);
 
   const isWin = getRules(round.outcome).isWinAtFullTime(round.outcome, score.home, score.away);
 

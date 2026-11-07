@@ -77,7 +77,7 @@ export function useCrashRound({ onRoundEnd }) {
       historyRef.current = [];
 
       const round = createRound(outcome);
-      const maxMultiplier = Math.floor((1 / round.startChance) * 100) / 100;
+      const maxMultiplier = outcome.odds;
       const startedAt = performance.now();
       roundRef.current = round;
 

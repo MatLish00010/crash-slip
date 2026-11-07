@@ -10,7 +10,7 @@ import {
   updateParticles,
 } from './crash-canvas';
 import { CHECKPOINTS, getMatchClockMinute, HOT_MINUTE, ROUND_PHASES } from './crash-engine';
-import { getCrashText, getMissText, getSuspenseText, getWinText, THEMES } from './crash-themes';
+import { getMissText, getSuspenseText, THEMES } from './crash-themes';
 import { ROUND_STATUSES } from './use-crash-round';
 
 const CANVAS_HEIGHT = 190;
@@ -83,9 +83,8 @@ function CrashStageUI({ round, historyRef, themeId, teamNames, result = null }) 
   roundRef.current = round;
   themeRef.current = theme;
 
-  const isCrashed = round.phase === ROUND_PHASES.CRASHED;
+  const isCrashed = round.phase === ROUND_PHASES.LOST;
   const isWon = round.phase === ROUND_PHASES.WON;
-  const isLost = round.phase === ROUND_PHASES.LOST;
   const isIdle = round.status === ROUND_STATUSES.IDLE;
   const isCountdown = round.status === ROUND_STATUSES.COUNTDOWN;
   const isLive = round.status === ROUND_STATUSES.RUNNING;
@@ -166,7 +165,7 @@ function CrashStageUI({ round, historyRef, themeId, teamNames, result = null }) 
         }
       }
 
-      if (current.phase === ROUND_PHASES.CRASHED && seen.phase !== ROUND_PHASES.CRASHED) {
+      if (current.phase === ROUND_PHASES.LOST && seen.phase !== ROUND_PHASES.LOST) {
         burst(head, {
           colors: [colors.error, colors.warn, colors.promo],
           count: 120,
@@ -243,7 +242,7 @@ function CrashStageUI({ round, historyRef, themeId, teamNames, result = null }) 
 
       const view = {
         isIdle: isRoundIdle,
-        isCrashed: current.phase === ROUND_PHASES.CRASHED,
+        isCrashed: current.phase === ROUND_PHASES.LOST,
         isSuspense: Boolean(current.suspense),
         cashOut: current.cashedOut,
         maxMultiplier: current.maxMultiplier,
@@ -268,8 +267,7 @@ function CrashStageUI({ round, historyRef, themeId, teamNames, result = null }) 
     };
   }, [historyRef]);
 
-  const crashTeam = teamNames[round.lastEvent?.team] ?? '';
-  const isEnded = isCrashed || isWon || isLost;
+  const isEnded = isCrashed || isWon;
   const isStarted = !isIdle && !isCountdown;
 
   return (
@@ -349,9 +347,7 @@ function CrashStageUI({ round, historyRef, themeId, teamNames, result = null }) 
 
           {isEnded && (
             <div className={clsx('sb-CrashStage-banner', 'isFinal', isWon ? 'isGood' : 'isBad')}>
-              {isCrashed && getCrashText(themeId, crashTeam)}
-              {isWon && getWinText(themeId)}
-              {isLost && 'FULL TIME · LOST'}
+              {isWon ? 'FULL TIME · WIN' : 'FULL TIME · LOST'}
             </div>
           )}
 

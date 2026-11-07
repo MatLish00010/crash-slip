@@ -2,23 +2,17 @@
 
 Live demo: https://matlish00010.github.io/crash-slip/
 
-Pick a football outcome from the feed and play it in the bet slip as a crash game.
+Pick a football outcome from the feed and play it in the bet slip as a fast fake match.
 
-The fake match is calibrated to the outcome odds, so the multiplier is the live price of the outcome: a round that wins pays the odds, and you can cash out at any moment. Each outcome kind has its own crash rule:
+The match is calibrated to the outcome odds and always plays to full time. The multiplier is the live cash-out
+price of the outcome: it falls when the score goes against the outcome, rises when it goes for it, and reaches the
+full odds at the whistle if the outcome wins. Cash out at any moment to keep part or all of the stake, or hold to
+the end for the full odds or nothing.
 
-| Outcome | Theme | Crash |
-|---|---|---|
-| 1 / 2 | Push for the win | The opponent takes the lead; a draw at full time loses |
-| X | Balance | A two-goal gap |
-| 1X / X2 | Hold the line | The opponent takes the lead |
-| 12 | No draw | A draw at full time |
-| Handicap −X | Build the gap | The opponent takes the lead; the gap is short at full time |
-| Handicap +X | Keep the cushion | The cushion is gone |
-| Over | Rocket | Not enough goals at full time; the goal over the line wins at once |
-| Under | Vault | The goal over the line |
+Penalties, VAR checks and dangerous attacks freeze the clock for two seconds, and the player can cash out before
+they resolve.
 
-Penalties, VAR checks and dangerous attacks freeze the clock for two seconds, and the player can cash out before they resolve.
-
+The house keeps a 5 % edge: whatever moment the player cashes out, the average return is about 95 % of the stake.
 Everything runs in the browser and no real money is involved.
 
 ## Run

@@ -48,8 +48,10 @@ for (let i = 0; i < 400; i++) {
 ## Scenarios to run
 
 1. Empty slip shows the empty state; clicking an odd shows the game with the right teams and outcome line.
-2. One round per theme family: 1x2 (Push), X (Balance), 1X/X2 (Hold), 12 (No draw), handicap −/+ (Gap / Cushion),
-   over (Rocket), under (Vault). Check the crash banner text and the red frame, or the win banner and confetti.
+2. One round per market: 1x2, X, 1X/X2, 12, handicap −/+, over, under. Check that the round always reaches 90',
+   that an opponent goal lowers the multiplier without ending the round, and that the end shows
+   `FULL TIME · WIN` with the full odds or `FULL TIME · LOST` with 0 and the red frame. The first live frame shows
+   about 0.95x.
 3. A decision window: the banner sits between the multiplier and the chart, the countdown bar drains, the button
    pulses; the outcome text appears after it.
 4. Manual cash out mid-round: the marker and label on the chart, the dashed ghost line afterwards, `+payout` in the
