@@ -7,7 +7,8 @@
     "dev": "vite --port 5180 --strictPort",
     "build": "vite build",
     "preview": "vite preview --port 5180",
-    "test": "vitest run"
+    "test": "vitest run",
+    "deploy": "bash scripts/deploy.sh"
   },
   "dependencies": {
     "clsx": "^2.1.1",
