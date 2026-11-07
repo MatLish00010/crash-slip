@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { memo, useCallback, useMemo, useState } from 'react';
 
-import { getPayout, ROUND_PHASES } from './crash-engine';
+import { checkOutcome, getPayout, INELIGIBILITY_REASONS, MAX_HANDICAP_LINE, MAX_TOTAL_LINE, ODDS_RANGE, ROUND_PHASES } from './crash-engine';
 import { getThemeId, SIDES } from './crash-outcomes';
 import { CrashStage } from './crash-stage';
 import { TeamBadge } from './team-badge';
@@ -15,6 +15,12 @@ const DEFAULT_STAKE = 25;
 
 const formatCoins = value => value.toFixed(2);
 
+const INELIGIBILITY_TEXTS = {
+  [INELIGIBILITY_REASONS.ODDS]: `Crash runs on odds from ${ODDS_RANGE[0]} to ${ODDS_RANGE[1]}.`,
+  [INELIGIBILITY_REASONS.LINE]: `Crash runs on half lines only: handicap up to ±${MAX_HANDICAP_LINE}, total up to ${MAX_TOTAL_LINE}.`,
+  [INELIGIBILITY_REASONS.CALIBRATION]: 'The match model cannot price these odds fairly.',
+};
+
 function CrashGameUI({ pick }) {
   const [playedPick, setPlayedPick] = useState(null);
   const [stake, setStake] = useState(DEFAULT_STAKE);
@@ -26,6 +32,7 @@ function CrashGameUI({ pick }) {
   const isEnded = round.status === ROUND_STATUSES.ENDED;
   const isShowingPlayed = isBusy || (isEnded && Boolean(pick) && playedPick?.selection === pick.selection);
   const shownPick = isShowingPlayed ? playedPick : pick;
+  const eligibility = useMemo(() => (pick ? checkOutcome(pick.outcome) : null), [pick]);
   const pickOdds = pick?.outcome.odds ?? 0;
   const effectiveAutoCashOut = autoCashOut !== null && autoCashOut < pickOdds ? autoCashOut : null;
 
@@ -47,6 +54,16 @@ function CrashGameUI({ pick }) {
         <span className="sb-CrashEmpty-text">
           Add a 1x2, double chance, handicap or total outcome from the list to play it as a crash.
         </span>
+      </div>
+    );
+  }
+
+  if (!isShowingPlayed && !eligibility.isEligible) {
+    return (
+      <div className="sb-CrashEmpty" data-test-id="crash-unavailable">
+        <span className="sb-CrashEmpty-icon">🚫</span>
+        <span className="sb-CrashEmpty-title">Not available as a crash</span>
+        <span className="sb-CrashEmpty-text">{INELIGIBILITY_TEXTS[eligibility.reason]}</span>
       </div>
     );
   }

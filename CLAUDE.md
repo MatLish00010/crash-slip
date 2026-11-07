@@ -31,6 +31,7 @@ synced: a change made here is not in constructor, and the reverse.
 npm install
 npm run dev      # http://localhost:5180 (strict port)
 npm test         # Vitest, engine tests
+npm run audit    # Monte Carlo exploit audit: strategies × outcomes, flags any return ≥ 1
 npm run build    # base path /crash-slip/ (GitHub Pages)
 npm run deploy   # tests + build + force-push dist to gh-pages
 ```
@@ -40,7 +41,7 @@ npm run deploy   # tests + build + force-push dist to gh-pages
 | File | Role |
 |---|---|
 | `src/app.jsx` | Page: match feed on the left, bet slip with the crash on the right; holds the one selected outcome |
-| `src/data/matches.js` | Four fictional matches with 1x2, double chance, handicap and total markets; `toSlipSelection` builds a sportsbook-shaped selection |
+| `src/data/matches.js` | Five fictional matches with 1x2, double chance, handicap and total markets (m5 is lopsided on purpose, so some of its outcomes are refused); `toSlipSelection` builds a sportsbook-shaped selection |
 | `src/feed/match-card.jsx` | Match card with odds buttons; a click selects or clears the outcome |
 | `src/crash/crash-outcomes.js` | Parses a selection into an outcome descriptor; full-time win rule per outcome kind; theme ids (colours) |
 | `src/crash/crash-engine.js` | Calibration, value table, match events, round state at a given time |
@@ -48,7 +49,8 @@ npm run deploy   # tests + build + force-push dist to gh-pages
 | `src/crash/crash-stage.jsx` + `crash-canvas.js` | Header (chance, clock, multiplier, event slot) and the canvas chart with particles |
 | `src/crash/crash-game.jsx` | Bet slip body: teams and score, outcome line, stage, stake, auto cash out, Place / Cash out |
 | `src/crash/crash-themes.js` | Glyph and colours per theme; suspense and miss texts |
-| `src/crash/crash-engine.test.js` | Parsing, calibration, price moves with the score, suspense pricing, house edge per strategy (Monte Carlo) |
+| `src/crash/crash-engine.test.js` | Parsing, calibration, price moves with the score, suspense pricing, house edge per strategy (Monte Carlo), eligibility, payout cap |
+| `scripts/audit.mjs` | Exploit audit (`npm run audit`) |
 
 ## Selection contract
 
@@ -83,11 +85,16 @@ These were agreed with the product owner; do not undo them without asking.
 - **Decision windows.** Penalties, VAR checks and dangerous attacks freeze the clock for 2.2 s; the multiplier
   during the window is the fair price of the two resolutions, and the player can cash out before it resolves.
 
+- **Not every outcome can be a crash.** Odds 1.05–30, half lines only (handicap ±2.5, total up to 6.5), and the
+  model must reproduce the odds within 2 %; otherwise the slip shows "Not available as a crash". The payout is
+  capped at `min(odds, 0.95 / start chance)`, so the house edge holds even if calibration misses. Details and the
+  exploit audit: `crash-engine` skill.
+
 ## Known limits and open ideas
 
 - The round is generated in the browser. In production the backend must own the round and reveal events as they
   happen, and accept a cash out by server time; otherwise DevTools shows the crash minute.
-- Integer and quarter handicaps (−1, −0.25) have no push: a level result on the handicap loses.
+- Integer and quarter handicaps (−1, −0.25) are refused: there is no push yet.
 - Not built yet: chains of matches (a won round carries its multiplier into the next match).
 - History: the first version crashed early (opponent ahead, two-goal gap, the goal over an under line). The owner
   replaced it with the full-match live price on 2026-11-07. Theme ids (`push`, `vault`, …) remain only as colour

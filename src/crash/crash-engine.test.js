@@ -1,6 +1,8 @@
 import {
   calibrateMatch,
+  checkOutcome,
   HOUSE_EDGE,
+  INELIGIBILITY_REASONS,
   generateMatchEvents,
   getMatchClockMinute,
   getPayout,
@@ -11,6 +13,7 @@ import {
   SUSPENSE_MS,
 } from './crash-engine';
 import { OUTCOME_KINDS, parseSlipOutcome, SIDES } from './crash-outcomes';
+import { MATCHES, toSlipSelection } from '../data/matches';
 
 const DEMO_OUTCOMES = [
   { id: 'demo-home', kind: OUTCOME_KINDS.WIN, side: SIDES.HOME, line: null, odds: 2.1, label: '1' },
@@ -213,4 +216,50 @@ test('formats the match clock and floors the payout', () => {
   expect(getMatchClockMinute(11.4)).toBe(12);
   expect(getMatchClockMinute(95)).toBe(90);
   expect(getPayout(10, 2.345)).toBe(23.45);
+});
+
+const EXTREME_OUTCOMES = {
+  'draw at 15': { kind: OUTCOME_KINDS.DRAW, side: null, line: null, odds: 15 },
+  'home win at 80': { kind: OUTCOME_KINDS.WIN, side: SIDES.HOME, line: null, odds: 80 },
+  'handicap +3.5 at 6': { kind: OUTCOME_KINDS.HANDICAP, side: SIDES.HOME, line: 3.5, odds: 6 },
+  'over 10.5 at 150': { kind: OUTCOME_KINDS.OVER, side: null, line: 10.5, odds: 150 },
+  'no draw at 1.02': { kind: OUTCOME_KINDS.NO_DRAW, side: null, line: null, odds: 1.02 },
+};
+
+describe('checkOutcome', () => {
+  test.each([
+    ['home win at 80', INELIGIBILITY_REASONS.ODDS],
+    ['no draw at 1.02', INELIGIBILITY_REASONS.ODDS],
+    ['handicap +3.5 at 6', INELIGIBILITY_REASONS.LINE],
+    ['over 10.5 at 150', INELIGIBILITY_REASONS.ODDS],
+    ['draw at 15', INELIGIBILITY_REASONS.CALIBRATION],
+  ])('rejects %s', (name, reason) => {
+    expect(checkOutcome(EXTREME_OUTCOMES[name])).toEqual({ isEligible: false, reason });
+  });
+
+  test.each([
+    ['an integer handicap', { kind: OUTCOME_KINDS.HANDICAP, side: SIDES.HOME, line: -1, odds: 2 }],
+    ['a quarter handicap', { kind: OUTCOME_KINDS.HANDICAP, side: SIDES.HOME, line: -0.25, odds: 1.9 }],
+    ['a total above 6.5', { kind: OUTCOME_KINDS.OVER, side: null, line: 7.5, odds: 9 }],
+  ])('rejects %s', (name, outcome) => {
+    expect(checkOutcome(outcome)).toEqual({ isEligible: false, reason: INELIGIBILITY_REASONS.LINE });
+  });
+
+  test('accepts every outcome of the four regular matches', () => {
+    const outcomes = MATCHES.filter(match => match.id !== 'm5').flatMap(match =>
+      match.markets.flatMap(market =>
+        market.outcomes.map(outcome => parseSlipOutcome(toSlipSelection(match, market, outcome)))
+      )
+    );
+
+    expect(outcomes.filter(outcome => !checkOutcome(outcome).isEligible)).toEqual([]);
+  });
+});
+
+test.each(Object.keys(EXTREME_OUTCOMES))('caps the payout of a round forced on %s', name => {
+  const outcome = EXTREME_OUTCOMES[name];
+  const { payoutScale, startChance } = calibrateMatch(outcome);
+
+  expect(payoutScale).toBeLessThanOrEqual(outcome.odds);
+  expect(payoutScale * startChance).toBeLessThanOrEqual(1 - HOUSE_EDGE + 0.01);
 });

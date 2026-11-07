@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview --port 5180",
     "test": "vitest run",
-    "deploy": "bash scripts/deploy.sh"
+    "deploy": "bash scripts/deploy.sh",
+    "audit": "vite-node scripts/audit.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

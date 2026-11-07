@@ -26,7 +26,8 @@ https://matlish00010.github.io/crash-slip/.
 | `crash-stage`, `crash-suspense`, `crash-event-banner`, `crash-result` | stage parts |
 
 Matches: `m1` even (2.10 / 3.40 / 3.60), `m2` home favourite, `m3` away favourite with home +1.5, `m4` even and low
-scoring with −0.5. Markets: `1` 1x2, `10` double chance, `16` handicap, `18` total.
+scoring with −0.5, `m5` lopsided on purpose: `odd-m5/1/1` (34.00) is refused by odds and `odd-m5/1/2` (draw 12.00)
+by calibration. Markets: `1` 1x2, `10` double chance, `16` handicap, `18` total.
 
 Start a round from the console:
 
@@ -59,7 +60,9 @@ for (let i = 0; i < 400; i++) {
 5. Auto cash out: chips at or above the outcome odds are disabled and never stay selected.
 6. Change the slip during a round: the round keeps its outcome. After a round ends, click any odd: the old result
    is gone and the new outcome shows 0 : 0, an empty chart and its own odds line.
-7. Mobile width (375 px): the slip goes above the feed, nothing wraps or overlaps.
+7. Refused outcome: click `odd-m5/1/1` and `odd-m5/1/2`; the slip shows "Not available as a crash" with the
+   reason (`crash-unavailable`), and no Place button.
+8. Mobile width (375 px): the slip goes above the feed, nothing wraps or overlaps.
 
 ## What to look for
 

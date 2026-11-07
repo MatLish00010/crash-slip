@@ -1,4 +1,4 @@
-import { CALIBRATION, getRules, SIDES } from './crash-outcomes';
+import { CALIBRATION, getRules, OUTCOME_KINDS, SIDES } from './crash-outcomes';
 
 export const MATCH_MINUTES = 90;
 export const MATCH_DURATION_MS = 26000;
@@ -10,6 +10,17 @@ export const CHECKPOINTS = [15, 30, 45, 60, 75, 90];
 export const HOT_MINUTE = 80;
 
 export const HOUSE_EDGE = 0.05;
+
+export const ODDS_RANGE = [1.05, 30];
+export const MAX_HANDICAP_LINE = 2.5;
+export const MAX_TOTAL_LINE = 6.5;
+export const CALIBRATION_TOLERANCE = 0.02;
+
+export const INELIGIBILITY_REASONS = {
+  ODDS: 'odds',
+  LINE: 'line',
+  CALIBRATION: 'calibration',
+};
 
 const TABLE_STEP_MINUTES = 0.5;
 const TABLE_STEPS = MATCH_MINUTES / TABLE_STEP_MINUTES;
@@ -107,7 +118,19 @@ function getRatesForParameter(outcome, parameter) {
 
 const getStartChance = (outcome, rates) => buildValueTable(outcome, rates)[tableIndex(0, 0, 0)];
 
+const calibrationCache = new Map();
+
+const getCalibrationKey = outcome => [outcome.kind, outcome.side, outcome.line, outcome.odds].join('|');
+
 export function calibrateMatch(outcome) {
+  const key = getCalibrationKey(outcome);
+
+  if (!calibrationCache.has(key)) calibrationCache.set(key, runCalibration(outcome));
+
+  return calibrationCache.get(key);
+}
+
+function runCalibration(outcome) {
   const targetChance = getTargetChance(outcome.odds);
   let [low, high] = getRules(outcome).calibration === CALIBRATION.GOALS ? GOALS_RANGE : STRENGTH_RANGE;
   const isIncreasing =
@@ -124,8 +147,42 @@ export function calibrateMatch(outcome) {
 
   const rates = getRatesForParameter(outcome, (low + high) / 2);
   const table = buildValueTable(outcome, rates);
+  const startChance = table[tableIndex(0, 0, 0)];
 
-  return { rates, table, startChance: table[tableIndex(0, 0, 0)] };
+  return {
+    rates,
+    table,
+    startChance,
+    payoutScale: Math.min(outcome.odds, Math.ceil(((1 - HOUSE_EDGE) / startChance) * 100) / 100),
+    calibrationError: Math.abs(startChance - targetChance) / targetChance,
+  };
+}
+
+const isHalfLine = line => Math.abs(line % 1) === 0.5;
+
+function isLineAllowed(outcome) {
+  if (outcome.line === null) return true;
+  if (!isHalfLine(outcome.line)) return false;
+
+  const limit = outcome.kind === OUTCOME_KINDS.HANDICAP ? MAX_HANDICAP_LINE : MAX_TOTAL_LINE;
+
+  return Math.abs(outcome.line) <= limit && (outcome.kind === OUTCOME_KINDS.HANDICAP || outcome.line > 0);
+}
+
+export function checkOutcome(outcome) {
+  const [minOdds, maxOdds] = ODDS_RANGE;
+
+  if (!(outcome.odds >= minOdds && outcome.odds <= maxOdds)) {
+    return { isEligible: false, reason: INELIGIBILITY_REASONS.ODDS };
+  }
+
+  if (!isLineAllowed(outcome)) return { isEligible: false, reason: INELIGIBILITY_REASONS.LINE };
+
+  if (calibrateMatch(outcome).calibrationError > CALIBRATION_TOLERANCE) {
+    return { isEligible: false, reason: INELIGIBILITY_REASONS.CALIBRATION };
+  }
+
+  return { isEligible: true, reason: null };
 }
 
 const sampleExponential = (rate, rng) => -Math.log(1 - rng()) / rate;
@@ -178,9 +235,9 @@ export function generateMatchEvents(rates, rng = Math.random) {
 }
 
 export function createRound(outcome, rng = Math.random) {
-  const { rates, table, startChance } = calibrateMatch(outcome);
+  const { rates, table, startChance, payoutScale } = calibrateMatch(outcome);
 
-  return { outcome, rates, table, startChance, events: generateMatchEvents(rates, rng) };
+  return { outcome, rates, table, startChance, payoutScale, events: generateMatchEvents(rates, rng) };
 }
 
 const applyGoal = (score, team) => ({ ...score, [team]: score[team] + 1 });
@@ -195,7 +252,7 @@ function describeState(round, { minute, score, phase, suspense = null, lastEvent
     suspense,
     lastEvent,
     chance,
-    multiplier: floorMultiplier(round.outcome.odds * chance),
+    multiplier: floorMultiplier(round.payoutScale * chance),
   };
 }
 

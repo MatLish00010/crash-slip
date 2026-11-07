@@ -119,6 +119,19 @@ export const MATCHES = [
     handicap: { line: -0.5, odds: [2.7, 1.45] },
     total: { line: 2.5, odds: [2.4, 1.55] },
   }),
+  createMatch({
+    id: 'm5',
+    league: 'Cup, first round',
+    kickOff: 'Sunday 16:00',
+    nameA: 'Comet Town',
+    nameB: 'Galaxy FC',
+    colorsA: ['#8ecae6', '#219ebc'],
+    colorsB: ['#7b2cbf', '#240046'],
+    oneXTwo: [34, 12, 1.06],
+    doubleChance: [8.5, 1.03, 1.01],
+    handicap: { line: 2.5, odds: [1.9, 1.9] },
+    total: { line: 3.5, odds: [1.7, 2.1] },
+  }),
 ];
 
 const ODDS_SUBUNITS = 1000;
